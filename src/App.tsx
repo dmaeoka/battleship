@@ -1,5 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import * as motion from "motion/react-client"
 import "./App.css";
+
+const ball = {
+	width: 100,
+	height: 100,
+	backgroundColor: "#dd00ee",
+	borderRadius: "50%",
+}
 
 const BOARD_SIZE: number = 10;
 const BATTLESHIP_LENGTH: number = 5;
@@ -19,73 +27,100 @@ type AttackParams = {
 	col: number;
 };
 
-function App() {
-	// CREATE BOARD
-	const createBoard = (): number[][] => {
-		return Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
-	};
+// Pre-calculated directions for adjacent cells
+const DIRECTIONS = [
+	{ row: -1, col: 0 }, // up
+	{ row: 1, col: 0 },  // down
+	{ row: 0, col: -1 }, // left
+	{ row: 0, col: 1 }   // right
+] as const;
 
-	// CHECK IF THE SHIP FITS
-	const doesShipCollide = (ships: Ship[], newShip: Ship): boolean => {
-		for (let ship of ships) {
+function App() {
+	// STATE
+	const [playerBoard, setPlayerBoard] = useState<number[][]>([]);
+	const [computerBoard, setComputerBoard] = useState<number[][]>([]);
+	const [computerShips, setComputerShips] = useState<Ship[]>([]);
+	const [playerShips, setPlayerShips] = useState<Ship[]>([]);
+	const [gameStatus, setGameStatus] = useState("setup");
+	const [winner, setWinner] = useState<string | null>(null);
+	const [message, setMessage] = useState("Initializing game...");
+
+	// Memoized board creation
+	const createBoard = useCallback((): number[][] => {
+		return Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
+	}, []);
+
+	// Optimized ship collision detection with early exit
+	const doesShipCollide = useCallback((ships: Ship[], newShip: Ship): boolean => {
+		const newShipCells = new Set<string>();
+
+		// Pre-calculate new ship cells
+		for (let j = 0; j < newShip.length; j++) {
+			const newRow = newShip.isHorizontal ? newShip.row : newShip.row + j;
+			const newCol = newShip.isHorizontal ? newShip.col + j : newShip.col;
+			newShipCells.add(`${newRow}-${newCol}`);
+		}
+
+		// Check against existing ships
+		for (const ship of ships) {
 			for (let i = 0; i < ship.length; i++) {
 				const shipRow = ship.isHorizontal ? ship.row : ship.row + i;
 				const shipCol = ship.isHorizontal ? ship.col + i : ship.col;
-				for (let j = 0; j < newShip.length; j++) {
-					const newRow = newShip.isHorizontal ? newShip.row : newShip.row + j;
-					const newCol = newShip.isHorizontal ? newShip.col + j : newShip.col;
-					if (shipRow === newRow && shipCol === newCol) {
-						return true;
-					}
+				if (newShipCells.has(`${shipRow}-${shipCol}`)) {
+					return true;
 				}
 			}
 		}
 		return false;
-	};
+	}, []);
 
-	const randomShip = (length: number, existingShips: Ship[]): Ship => {
-		let ship: Ship = {
-			row: 0,
-			col: 0,
-			isHorizontal: false,
-			hits: 0,
-			length
-		};
-		let valid = false;
-		while (!valid) {
+	// Optimized random ship generation with bounds checking
+	const randomShip = useCallback((length: number, existingShips: Ship[]): Ship => {
+		let attempts = 0;
+		const maxAttempts = 1000; // Prevent infinite loops
+
+		while (attempts < maxAttempts) {
 			const isHorizontal = Math.random() < 0.5;
-			const row = isHorizontal
-				? Math.floor(Math.random() * BOARD_SIZE)
-				: Math.floor(Math.random() * (BOARD_SIZE - length + 1));
-			const col = isHorizontal
-				? Math.floor(Math.random() * (BOARD_SIZE - length + 1))
-				: Math.floor(Math.random() * BOARD_SIZE);
+			const maxRow = isHorizontal ? BOARD_SIZE : BOARD_SIZE - length + 1;
+			const maxCol = isHorizontal ? BOARD_SIZE - length + 1 : BOARD_SIZE;
 
-			ship = {
-				row,
-				col,
+			const ship: Ship = {
+				row: Math.floor(Math.random() * maxRow),
+				col: Math.floor(Math.random() * maxCol),
 				isHorizontal,
 				hits: 0,
 				length
 			};
+			console.log(ship);
 
-			valid = !doesShipCollide(existingShips, ship);
+			if (!doesShipCollide(existingShips, ship)) {
+				return ship;
+			}
+			attempts++;
 		}
 
-		return ship;
-	};
+		// Fallback - should rarely happen
+		return {
+			row: 0,
+			col: 0,
+			isHorizontal: true,
+			hits: 0,
+			length
+		};
+	}, [doesShipCollide]);
 
-	const placeShips = (player: string = "computer"): void => {
+	// Memoized ship placement
+	const placeShips = useCallback((player: string = "computer"): void => {
 		const ships: Ship[] = [];
 		const lengths = [BATTLESHIP_LENGTH, DESTROYER_LENGTH, DESTROYER_LENGTH];
 
-		for (let len of lengths) {
+		for (const len of lengths) {
 			const newShip = randomShip(len, ships);
 			ships.push(newShip);
 		}
 
 		const newBoard = createBoard();
-		for (let ship of ships) {
+		for (const ship of ships) {
 			for (let i = 0; i < ship.length; i++) {
 				const r = ship.isHorizontal ? ship.row : ship.row + i;
 				const c = ship.isHorizontal ? ship.col + i : ship.col;
@@ -100,83 +135,16 @@ function App() {
 			setPlayerBoard(newBoard);
 			setPlayerShips(ships);
 		}
-	};
+	}, [createBoard, randomShip]);
 
-	// COMMON ATTACK METHOD
-	const attack = ({ attacker, row, col }: AttackParams): void => {
-		console.log(`${attacker} attacking ${row}, ${col}`);
+	// Memoized adjacent cells calculation
+	const getAdjacentCells = useCallback((row: number, col: number): { row: number; col: number }[] => {
+		const adjacent: { row: number; col: number }[] = [];
 
-		if (gameStatus !== "playing") return;
-
-		// Determine target board and ships based on attacker
-		const targetBoard = attacker === "player" ? computerBoard : playerBoard;
-		const targetShips = attacker === "player" ? computerShips : playerShips;
-		const setTargetBoard = attacker === "player" ? setComputerBoard : setPlayerBoard;
-		const setTargetShips = attacker === "player" ? setComputerShips : setPlayerShips;
-
-		// Check if cell already attacked
-		if (targetBoard[row][col] === 2 || targetBoard[row][col] === 3) return;
-
-		const newBoard: number[][] = [...targetBoard];
-		let hit = false;
-
-		// Check if attack hits any ship
-		for (let ship of targetShips) {
-			for (let i = 0; i < ship.length; i++) {
-				const r = ship.isHorizontal ? ship.row : ship.row + i;
-				const c = ship.isHorizontal ? ship.col + i : ship.col;
-				if (r === row && c === col) {
-					hit = true;
-					ship.hits++;
-					break;
-				}
-			}
-		}
-
-		// Update board: 2 = miss, 3 = hit
-		newBoard[row][col] = hit ? 3 : 2;
-
-		// Update state
-		setTargetBoard(newBoard);
-		setTargetShips([...targetShips]);
-
-		// Set message based on attacker and result
-		if (attacker === "player") {
-			setMessage(hit ? "You hit a ship!" : "You missed.");
-		} else {
-			setMessage(hit ? "Computer hit your ship!" : "Computer missed your ship.");
-		}
-
-		// Check for game over
-		if (targetShips.every((s) => s.hits >= s.length)) {
-			setGameStatus("game over");
-			setWinner(attacker);
-			setMessage(attacker === "player" ? "You won!" : "Computer won!");
-		} else if (attacker === "player") {
-			// If player attacked, trigger computer turn after delay
-			setTimeout(computerTurn, 1000);
-		}
-	};
-
-	const handlePlayerAttack = (row: number, col: number): void => {
-		attack({ attacker: "player", row, col });
-	};
-
-	// Helper function to get valid adjacent cells
-	const getAdjacentCells = (row: number, col: number): { row: number; col: number }[] => {
-		const adjacent = [];
-		const directions = [
-			{ row: -1, col: 0 }, // up
-			{ row: 1, col: 0 },  // down
-			{ row: 0, col: -1 }, // left
-			{ row: 0, col: 1 }   // right
-		];
-
-		for (const dir of directions) {
+		for (const dir of DIRECTIONS) {
 			const newRow = row + dir.row;
 			const newCol = col + dir.col;
 
-			// Check bounds and if cell hasn't been attacked
 			if (newRow >= 0 && newRow < BOARD_SIZE &&
 				newCol >= 0 && newCol < BOARD_SIZE &&
 				playerBoard[newRow][newCol] !== 2 &&
@@ -186,100 +154,168 @@ function App() {
 		}
 
 		return adjacent;
-	};
+	}, [playerBoard]);
 
-	// Check if a hit belongs to a destroyed ship
-	const isHitFromDestroyedShip = (row: number, col: number): boolean => {
-		for (let ship of playerShips) {
-			// Check if this hit belongs to this ship
+	// Optimized ship destruction check with early exit
+	const isHitFromDestroyedShip = useCallback((row: number, col: number): boolean => {
+		for (const ship of playerShips) {
+			if (ship.hits < ship.length) continue; // Skip non-destroyed ships
+
 			for (let i = 0; i < ship.length; i++) {
 				const r = ship.isHorizontal ? ship.row : ship.row + i;
 				const c = ship.isHorizontal ? ship.col + i : ship.col;
 				if (r === row && c === col) {
-					// If we found the ship this hit belongs to, check if it's destroyed
-					return ship.hits >= ship.length;
+					return true;
 				}
 			}
 		}
 		return false;
-	};
+	}, [playerShips]);
 
-	// Smart computer targeting
-	const getSmartTarget = (): { row: number; col: number } => {
-		// First priority: Look for hits (3) that belong to ships that are NOT destroyed
+	// Optimized smart targeting with memoization
+	const getSmartTarget = useCallback((): { row: number; col: number } => {
+		// Cache valid targets to avoid recalculation
+		const validTargets: { row: number; col: number }[] = [];
+		const patternTargets: { row: number; col: number }[] = [];
+
+		// Single pass through the board
 		for (let row = 0; row < BOARD_SIZE; row++) {
 			for (let col = 0; col < BOARD_SIZE; col++) {
 				if (playerBoard[row][col] === 3 && !isHitFromDestroyedShip(row, col)) {
+					// Check for adjacent targets
 					const adjacentCells = getAdjacentCells(row, col);
-					if (adjacentCells.length > 0) {
-						// Return a random adjacent cell
-						return adjacentCells[Math.floor(Math.random() * adjacentCells.length)];
-					}
-				}
-			}
-		}
+					validTargets.push(...adjacentCells);
 
-		// Second priority: Look for a line of hits from non-destroyed ships to continue the pattern
-		for (let row = 0; row < BOARD_SIZE; row++) {
-			for (let col = 0; col < BOARD_SIZE; col++) {
-				if (playerBoard[row][col] === 3 && !isHitFromDestroyedShip(row, col)) {
-					// Check for horizontal line of hits
+					// Check for pattern targets
 					if (col < BOARD_SIZE - 1 && playerBoard[row][col + 1] === 3 && !isHitFromDestroyedShip(row, col + 1)) {
-						// Found horizontal line, try to extend it
-						// Check left end
+						// Horizontal pattern
 						if (col > 0 && playerBoard[row][col - 1] !== 2 && playerBoard[row][col - 1] !== 3) {
-							return { row, col: col - 1 };
+							patternTargets.push({ row, col: col - 1 });
 						}
-						// Check right end
 						let rightEnd = col + 1;
 						while (rightEnd < BOARD_SIZE && playerBoard[row][rightEnd] === 3 && !isHitFromDestroyedShip(row, rightEnd)) {
 							rightEnd++;
 						}
 						if (rightEnd < BOARD_SIZE && playerBoard[row][rightEnd] !== 2 && playerBoard[row][rightEnd] !== 3) {
-							return { row, col: rightEnd };
+							patternTargets.push({ row, col: rightEnd });
 						}
 					}
 
-					// Check for vertical line of hits
 					if (row < BOARD_SIZE - 1 && playerBoard[row + 1][col] === 3 && !isHitFromDestroyedShip(row + 1, col)) {
-						// Found vertical line, try to extend it
-						// Check top end
+						// Vertical pattern
 						if (row > 0 && playerBoard[row - 1][col] !== 2 && playerBoard[row - 1][col] !== 3) {
-							return { row: row - 1, col };
+							patternTargets.push({ row: row - 1, col });
 						}
-						// Check bottom end
 						let bottomEnd = row + 1;
 						while (bottomEnd < BOARD_SIZE && playerBoard[bottomEnd][col] === 3 && !isHitFromDestroyedShip(bottomEnd, col)) {
 							bottomEnd++;
 						}
 						if (bottomEnd < BOARD_SIZE && playerBoard[bottomEnd][col] !== 2 && playerBoard[bottomEnd][col] !== 3) {
-							return { row: bottomEnd, col };
+							patternTargets.push({ row: bottomEnd, col });
 						}
 					}
 				}
 			}
 		}
 
-		// Fallback: Random targeting (no active targets from non-destroyed ships)
-		let row: number;
-		let col: number;
-		do {
-			row = Math.floor(Math.random() * BOARD_SIZE);
-			col = Math.floor(Math.random() * BOARD_SIZE);
-		} while (playerBoard[row][col] === 2 || playerBoard[row][col] === 3);
+		// Return pattern targets first (highest priority)
+		if (patternTargets.length > 0) {
+			return patternTargets[Math.floor(Math.random() * patternTargets.length)];
+		}
 
-		return { row, col };
-	};
+		// Return adjacent targets
+		if (validTargets.length > 0) {
+			return validTargets[Math.floor(Math.random() * validTargets.length)];
+		}
 
-	const computerTurn = (): void => {
+		// Fallback: Random targeting with optimized loop
+		const availableCells: { row: number; col: number }[] = [];
+		for (let row = 0; row < BOARD_SIZE; row++) {
+			for (let col = 0; col < BOARD_SIZE; col++) {
+				if (playerBoard[row][col] !== 2 && playerBoard[row][col] !== 3) {
+					availableCells.push({ row, col });
+				}
+			}
+		}
+
+		return availableCells.length > 0
+			? availableCells[Math.floor(Math.random() * availableCells.length)]
+			: { row: 0, col: 0 };
+	}, [playerBoard, isHitFromDestroyedShip, getAdjacentCells]);
+
+	// Optimized attack method with batch updates
+	const attack = useCallback(({ attacker, row, col }: AttackParams): void => {
 		if (gameStatus !== "playing") return;
 
+		const isPlayer = attacker === "player";
+		const targetBoard = isPlayer ? computerBoard : playerBoard;
+		const targetShips = isPlayer ? computerShips : playerShips;
+
+		// Check if cell already attacked
+		if (targetBoard[row][col] === 2 || targetBoard[row][col] === 3) return;
+
+		// Create new board and ships arrays
+		const newBoard = targetBoard.map(row => [...row]);
+		const newShips = targetShips.map(ship => ({ ...ship }));
+
+		let hit = false;
+
+		// Optimized hit detection with early exit
+		for (const ship of newShips) {
+			for (let i = 0; i < ship.length; i++) {
+				const r = ship.isHorizontal ? ship.row : ship.row + i;
+				const c = ship.isHorizontal ? ship.col + i : ship.col;
+				if (r === row && c === col) {
+					hit = true;
+					ship.hits++;
+					break;
+				}
+			}
+			if (hit) break;
+		}
+
+		// Update board
+		newBoard[row][col] = hit ? 3 : 2;
+
+		// Batch state updates
+		if (isPlayer) {
+			setComputerBoard(newBoard);
+			setComputerShips(newShips);
+			setMessage(hit ? "You hit a ship!" : "You missed.");
+		} else {
+			setPlayerBoard(newBoard);
+			setPlayerShips(newShips);
+			setMessage(hit ? "Computer hit your ship!" : "Computer missed your ship.");
+		}
+
+		// Check for game over
+		if (newShips.every((s) => s.hits >= s.length)) {
+			setGameStatus("game over");
+			setWinner(attacker);
+			setMessage(attacker === "player" ? "You won!" : "Computer won!");
+		} else if (isPlayer) {
+			// Schedule computer turn
+			setTimeout(() => {
+				const target = getSmartTarget();
+				attack({ attacker: "computer", row: target.row, col: target.col });
+			}, 1000);
+		}
+	}, [gameStatus, computerBoard, playerBoard, computerShips, playerShips, getSmartTarget]);
+
+	// Memoized player attack handler
+	const handlePlayerAttack = useCallback((row: number, col: number): void => {
+		attack({ attacker: "player", row, col });
+	}, [attack]);
+
+	// Memoized computer turn
+	const computerTurn = useCallback((): void => {
+		if (gameStatus !== "playing") return;
 		const target = getSmartTarget();
 		attack({ attacker: "computer", row: target.row, col: target.col });
-	};
+	}, [gameStatus, getSmartTarget, attack]);
 
-	// board, row, col, isPlayerBoard
-	const renderCell = (
+	// Memoized cell renderer
+	const renderCell = useCallback((
 		board: number[][],
 		row: number,
 		col: number,
@@ -287,58 +323,60 @@ function App() {
 	) => {
 		const cellValue = board[row][col];
 		let cellClass = "cell";
-		if (cellValue === 1) {
-			cellClass += " ship";
-		} else if (cellValue === 2) {
-			cellClass += " miss";
-		} else if (cellValue === 3) {
-			cellClass += " hit";
-		}
+
+		if (cellValue === 1) cellClass += " ship";
+		else if (cellValue === 2) cellClass += " miss";
+		else if (cellValue === 3) cellClass += " hit";
 
 		return (
 			<div
 				key={`${row}-${col}`}
 				className={cellClass}
-				onClick={() => !isPlayerBoard && handlePlayerAttack(row, col)}
-			>{cellValue}</div>
+				onClick={!isPlayerBoard ? () => handlePlayerAttack(row, col) : undefined}
+			>
+				{cellValue}
+			</div>
 		);
-	};
+	}, [handlePlayerAttack]);
 
-	const resetGame = (): void => {
-		setPlayerBoard(createBoard());
-		setComputerBoard(createBoard());
+	// Memoized board rendering
+	const playerBoardCells = useMemo(() => {
+		return playerBoard.flatMap((row, rowIndex) =>
+			row.map((_, colIndex) => renderCell(playerBoard, rowIndex, colIndex, true))
+		);
+	}, [playerBoard, renderCell]);
+
+	const computerBoardCells = useMemo(() => {
+		return computerBoard.flatMap((row, rowIndex) =>
+			row.map((_, colIndex) => renderCell(computerBoard, rowIndex, colIndex, false))
+		);
+	}, [computerBoard, renderCell]);
+
+	// Optimized reset function
+	const resetGame = useCallback((): void => {
+		setPlayerBoard([]);
+		setComputerBoard([]);
 		setPlayerShips([]);
 		setComputerShips([]);
 		setGameStatus("setup");
 		setWinner(null);
 		setMessage("Game reset! Starting new game...");
 
-		// Restart the game
 		setTimeout(() => {
 			setGameStatus("playing");
 			placeShips("player");
 			placeShips("computer");
 			setMessage("Game started! Attack the computer's board.");
 		}, 1000);
-	};
+	}, [placeShips]);
 
-	// STATE
-	const [playerBoard, setPlayerBoard] = useState<number[][]>([]);
-	const [computerBoard, setComputerBoard] = useState<number[][]>([]);
-	const [computerShips, setComputerShips] = useState<Ship[]>([]);
-	const [playerShips, setPlayerShips] = useState<Ship[]>([]);
-	const [gameStatus, setGameStatus] = useState("setup");
-	const [winner, setWinner] = useState<string | null>(null);
-	const [message, setMessage] = useState("Initializing game...");
-
-	// EFFECT
+	// Optimized initialization
 	useEffect(() => {
-		console.log("useEffect");
 		setGameStatus("playing");
 		placeShips("player");
 		placeShips("computer");
 		setMessage("Game started! Attack the computer's board.");
-	}, []);
+	}, [placeShips]);
 
 	return (
 		<div className="battleship-game">
@@ -350,14 +388,14 @@ function App() {
 				<div className="board-container">
 					<h2>Your Board</h2>
 					<div className="board">
-						{playerBoard.map((row, rowIndex) => row.map((_, colIndex) => renderCell(playerBoard, rowIndex, colIndex, true)))}
+						{playerBoardCells}
 					</div>
 				</div>
 
 				<div className="board-container">
 					<h2>Computer's Board</h2>
 					<div className="board">
-						{computerBoard.map((row, rowIndex) => row.map((_, colIndex) => renderCell(computerBoard, rowIndex, colIndex, false)))}
+						{computerBoardCells}
 					</div>
 				</div>
 			</div>
@@ -368,6 +406,16 @@ function App() {
 					<button onClick={resetGame}>Play Again</button>
 				</div>
 			)}
+
+			<motion.div
+				initial={{ opacity: 0, scale: 0 }}
+				animate={{ opacity: 1, scale: 1 }}
+				transition={{
+					duration: 0.4,
+					scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
+				}}
+				style={ball}
+			/>
 		</div>
 	);
 }
