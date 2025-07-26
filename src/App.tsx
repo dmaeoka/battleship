@@ -1,17 +1,23 @@
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 import { useState, useEffect, useCallback, useMemo } from "react";
 import * as motion from "motion/react-client"
+import {
+	Container,
+	Button,
+	Grid,
+	Box,
+	Typography,
+	InputLabel,
+	TextField,
+	Stack
+} from '@mui/material';
+import visuallyHidden from '@mui/utils/visuallyHidden';
+
 import "./App.css";
-
-const ball = {
-	width: 100,
-	height: 100,
-	backgroundColor: "#dd00ee",
-	borderRadius: "50%",
-}
-
-const BOARD_SIZE: number = 10;
-const BATTLESHIP_LENGTH: number = 5;
-const DESTROYER_LENGTH: number = 4;
 
 interface Ship {
 	row: number;
@@ -27,7 +33,30 @@ type AttackParams = {
 	col: number;
 };
 
-// Pre-calculated directions for adjacent cells
+// Constants
+const BOARD_SIZE: number = 10;
+const BATTLESHIP_LENGTH: number = 5;
+const DESTROYER_LENGTH: number = 4;
+const ball = {
+	width: "100%",
+	height: 30,
+	borderRadius: ".25rem",
+}
+
+// VALID PATTERN
+const validPattern = /^[A-J](10|[1-9])$/;
+
+/*
+-1   0   1
++---+---+---+
+| 0 | 0 | 0 | -1
++---+---+---+
+| 0 | 0 | 0 | 0
++---+---+---+
+| 0 | 0 | 0 | 1
++---+---+---+
+Pre-calculated directions for adjacent cells
+*/
 const DIRECTIONS = [
 	{ row: -1, col: 0 }, // up
 	{ row: 1, col: 0 },  // down
@@ -35,21 +64,59 @@ const DIRECTIONS = [
 	{ row: 0, col: 1 }   // right
 ] as const;
 
-function App() {
+function Battleship() {
 	// STATE
 	const [playerBoard, setPlayerBoard] = useState<number[][]>([]);
 	const [computerBoard, setComputerBoard] = useState<number[][]>([]);
 	const [computerShips, setComputerShips] = useState<Ship[]>([]);
 	const [playerShips, setPlayerShips] = useState<Ship[]>([]);
 	const [gameStatus, setGameStatus] = useState("setup");
-	const [winner, setWinner] = useState<string | null>(null);
+	const [winner, setWinner] = useState("");
 	const [message, setMessage] = useState("Initializing game...");
+	const [inputValue, setInputValue] = useState("");
+	const [isValid, setIsValid] = useState(false);
+	const [errorMessage, setErrorMessage] = useState("");
+	const [targetCoordinates, setTargetCoordinates] = useState<{row: number, col: number} | null>(null);
 
 	// Memoized board creation
 	const createBoard = useCallback((): number[][] => {
 		return Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0));
 	}, []);
 
+	// CONVERT VALUE TO COORTINATE
+	const convertToCoordinates = useCallback((value: string): { row: number; col: number } | null => {
+		if (!validPattern.test(value)) return null;
+
+		const letter: string = value[0];
+		const col: number = letter.charCodeAt(0) - 65;
+		const row: number = parseInt(value.slice(1)) - 1;
+
+		return { row, col };
+	}, []);
+
+
+	const handleInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+		let value = event.target.value.toUpperCase();
+		if (value.length > 3) {
+			value = value.slice(0, 3);
+		}
+		setInputValue(value);
+		const isValidFormat = validPattern.test(value.toUpperCase());
+
+		if (isValidFormat) {
+			setIsValid(true);
+			const coordinates = convertToCoordinates(value);
+
+			console.log(coordinates);
+
+			setTargetCoordinates(coordinates);
+		} else {
+			setIsValid(false);
+			setTargetCoordinates(null);
+		}
+	}, [convertToCoordinates]);
+
+	// Memoized ship collision detection
 	// Optimized ship collision detection with early exit
 	const doesShipCollide = useCallback((ships: Ship[], newShip: Ship): boolean => {
 		const newShipCells = new Set<string>();
@@ -91,7 +158,6 @@ function App() {
 				hits: 0,
 				length
 			};
-			console.log(ship);
 
 			if (!doesShipCollide(existingShips, ship)) {
 				return ship;
@@ -282,6 +348,8 @@ function App() {
 			setComputerBoard(newBoard);
 			setComputerShips(newShips);
 			setMessage(hit ? "You hit a ship!" : "You missed.");
+			// Clear target after attack
+			setTargetCoordinates(null);
 		} else {
 			setPlayerBoard(newBoard);
 			setPlayerShips(newShips);
@@ -303,23 +371,34 @@ function App() {
 	}, [gameStatus, computerBoard, playerBoard, computerShips, playerShips, getSmartTarget]);
 
 	// Memoized player attack handler
-	const handlePlayerAttack = useCallback((row: number, col: number): void => {
-		attack({ attacker: "player", row, col });
-	}, [attack]);
+	const handlePlayerAttack = useCallback((e: React.FormEvent<HTMLFormElement>): void => {
+		e.preventDefault();
+		const coords = convertToCoordinates(inputValue);
 
-	// Memoized computer turn
-	const computerTurn = useCallback((): void => {
-		if (gameStatus !== "playing") return;
-		const target = getSmartTarget();
-		attack({ attacker: "computer", row: target.row, col: target.col });
-	}, [gameStatus, getSmartTarget, attack]);
+		setInputValue("");
+		setIsValid(false);
+
+		if (!coords) {
+			setErrorMessage("Invalid coordinates.");
+			return;
+		}
+
+		const { row, col } = coords
+
+		if (computerBoard[row][col] === 2 || computerBoard[row][col] === 3) {
+			setErrorMessage("You already attacked this cell.");
+		} else {
+			setErrorMessage("");
+			attack({ attacker: "player", row, col });
+		}
+	}, [inputValue, computerBoard, convertToCoordinates, attack]);
 
 	// Memoized cell renderer
 	const renderCell = useCallback((
 		board: number[][],
 		row: number,
 		col: number,
-		isPlayerBoard: boolean,
+		isComputerBoard: boolean = false
 	) => {
 		const cellValue = board[row][col];
 		let cellClass = "cell";
@@ -328,27 +407,41 @@ function App() {
 		else if (cellValue === 2) cellClass += " miss";
 		else if (cellValue === 3) cellClass += " hit";
 
+		// Add target class if this is the computer board and matches target coordinates
+		if (isComputerBoard && targetCoordinates &&
+			targetCoordinates.row === row && targetCoordinates.col === col) {
+			cellClass += " target";
+		}
+
 		return (
-			<div
+			 <motion.div
 				key={`${row}-${col}`}
+				initial={{ opacity: 0, scale: 0 }}
+				animate={{ opacity: 1, scale: 1 }}
+				transition={{
+					duration: 0.4,
+					scale: {
+						type: "spring",
+						visualDuration: 0.4,
+						bounce: 0.5
+					},
+				}}
+				style={ball}
 				className={cellClass}
-				onClick={!isPlayerBoard ? () => handlePlayerAttack(row, col) : undefined}
-			>
-				{cellValue}
-			</div>
+			/>
 		);
-	}, [handlePlayerAttack]);
+	}, [targetCoordinates]);
 
 	// Memoized board rendering
 	const playerBoardCells = useMemo(() => {
 		return playerBoard.flatMap((row, rowIndex) =>
-			row.map((_, colIndex) => renderCell(playerBoard, rowIndex, colIndex, true))
+			row.map((_, colIndex) => renderCell(playerBoard, rowIndex, colIndex, false))
 		);
 	}, [playerBoard, renderCell]);
 
 	const computerBoardCells = useMemo(() => {
 		return computerBoard.flatMap((row, rowIndex) =>
-			row.map((_, colIndex) => renderCell(computerBoard, rowIndex, colIndex, false))
+			row.map((_, colIndex) => renderCell(computerBoard, rowIndex, colIndex, true))
 		);
 	}, [computerBoard, renderCell]);
 
@@ -359,8 +452,12 @@ function App() {
 		setPlayerShips([]);
 		setComputerShips([]);
 		setGameStatus("setup");
-		setWinner(null);
+		setWinner("");
 		setMessage("Game reset! Starting new game...");
+		setTargetCoordinates(null);
+		setInputValue("");
+		setIsValid(false);
+		setErrorMessage("");
 
 		setTimeout(() => {
 			setGameStatus("playing");
@@ -378,46 +475,133 @@ function App() {
 		setMessage("Game started! Attack the computer's board.");
 	}, [placeShips]);
 
+
 	return (
-		<div className="battleship-game">
-			<h1>Battleship Game</h1>
-			<div className="message">{message}</div>
-			<div>Status: {gameStatus}</div>
-
-			<div className="boards">
-				<div className="board-container">
+		<Container className="battleship-game" maxWidth="md">
+			<Grid container spacing={2}>
+				<Grid size={12}>
+					<Typography variant="h1" textAlign="center">Battleship Game</Typography>
+					<Typography variant="subtitle1" textAlign="center" gutterBottom>{message}</Typography>
+				</Grid>
+				<Grid size={12}>
+					Status: {gameStatus}
+					-- winer: {winner} --
+					{gameStatus === 'game over' && (
+						<button onClick={resetGame}>Play Again</button>
+					)}
+				</Grid>
+			</Grid>
+			<Grid container spacing={2}>
+				-- {inputValue} --
+				<Box
+					component="form"
+					noValidate
+					autoComplete="off"
+					onSubmit={(e) => handlePlayerAttack(e)}
+				>
+					<Stack
+						direction={{ xs: 'column', sm: 'row' }}
+						spacing={1}
+						useFlexGap
+						sx={{ pt: 2, width: { xs: '100%', sm: '350px' } }}
+					>
+						<InputLabel htmlFor="coordinates" sx={visuallyHidden}>Coordinates:</InputLabel>
+						<TextField
+							id="coordinates"
+							hiddenLabel
+							size="small"
+							variant="outlined"
+							aria-label="Enter the coordinates"
+							fullWidth
+							slotProps={{
+								htmlInput: {
+								autoComplete: 'off',
+								'aria-label': 'Enter your the coordinates',
+								},
+							}}
+							value={inputValue}
+							onChange={handleInputChange}
+						/>
+						<Button
+							variant="contained"
+							color="primary"
+							size="small"
+							sx={{ minWidth: 'fit-content' }}
+							type="submit"
+							disabled={!isValid}
+						>Attack</Button>
+					</Stack>
+					<Typography
+						variant="caption"
+						color="text.secondary"
+						sx={{ textAlign: 'center' }}
+					>Format must be: Letter (A-J) + Number (1-10). Example: A1, B5, J10</Typography>
+				</Box>
+			</Grid>
+			<Grid container spacing={4}>
+				<Grid size={6}>
 					<h2>Your Board</h2>
-					<div className="board">
-						{playerBoardCells}
+					<div style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
+						<div className="row">
+							<span>A</span>
+							<span>B</span>
+							<span>C</span>
+							<span>D</span>
+							<span>E</span>
+							<span>F</span>
+							<span>G</span>
+							<span>H</span>
+							<span>I</span>
+							<span>J</span>
+						</div>
+						<div className="row2">
+							<span>1</span>
+							<span>2</span>
+							<span>3</span>
+							<span>4</span>
+							<span>5</span>
+							<span>6</span>
+							<span>7</span>
+							<span>8</span>
+							<span>9</span>
+							<span>10</span>
+						</div>
+						<div className="board">{playerBoardCells}</div>
 					</div>
-				</div>
-
-				<div className="board-container">
+				</Grid>
+				<Grid size={6}>
 					<h2>Computer's Board</h2>
-					<div className="board">
-						{computerBoardCells}
+					<div style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
+						<div className="row">
+							<span>A</span>
+							<span>B</span>
+							<span>C</span>
+							<span>D</span>
+							<span>E</span>
+							<span>F</span>
+							<span>G</span>
+							<span>H</span>
+							<span>I</span>
+							<span>J</span>
+						</div>
+						<div className="row2">
+							<span>1</span>
+							<span>2</span>
+							<span>3</span>
+							<span>4</span>
+							<span>5</span>
+							<span>6</span>
+							<span>7</span>
+							<span>8</span>
+							<span>9</span>
+							<span>10</span>
+						</div>
+						<div className="board">{computerBoardCells}</div>
 					</div>
-				</div>
-			</div>
-
-			{gameStatus === 'game over' && (
-				<div className="game-over">
-					<h2>{winner === 'player' ? 'You Won!' : 'Computer Won!'}</h2>
-					<button onClick={resetGame}>Play Again</button>
-				</div>
-			)}
-
-			<motion.div
-				initial={{ opacity: 0, scale: 0 }}
-				animate={{ opacity: 1, scale: 1 }}
-				transition={{
-					duration: 0.4,
-					scale: { type: "spring", visualDuration: 0.4, bounce: 0.5 },
-				}}
-				style={ball}
-			/>
-		</div>
+				</Grid>
+			</Grid>
+		</Container>
 	);
 }
 
-export default App;
+export default Battleship;

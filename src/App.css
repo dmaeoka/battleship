@@ -5,13 +5,6 @@
 	text-align: center;
 }
 
-.battleship-game {
-	font-family: Arial, sans-serif;
-	width: 800px;
-	margin: 0 auto;
-	text-align: center;
-}
-
 .message {
 	margin: 20px 0;
 	font-size: 1.2em;
@@ -32,8 +25,8 @@
 	display: grid;
 	grid-template-columns: repeat(10, 1fr);
 	grid-template-rows: repeat(10, 1fr);
-	grid-column-gap: 0px;
-	grid-row-gap: 0px;
+	grid-column-gap: 2px;
+	grid-row-gap: 2px;
 }
 
 .cell {
@@ -43,23 +36,22 @@
 	width: 100%;
 	height: 30px;
 	background-color: #00f;
-	cursor: pointer;
 	font-size: .75rem;
 }
 
-.cell:hover {
+.cell.target {
 	background-color: #ddd;
 }
 
-.ship {
+.cell.ship {
 	background-color: #666;
 }
 
-.hit {
+.cell.hit {
 	background-color: #f00;
 }
 
-.miss {
+.cell.miss {
 	background-color: rgb(0, 2, 123);
 }
 
@@ -82,4 +74,30 @@ button {
 
 button:hover {
 	background-color: #45a049;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+	grid-template-rows: 1fr;
+	grid-column-gap: 2px;
+	grid-row-gap: 0px;
+	position: absolute;
+	width: calc(100% - 2rem);
+	top: 0;
+	left: 2rem;
+}
+
+.row2 {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: repeat(10, 1fr);
+	grid-column-gap: 0px;
+	grid-row-gap: 2px;
+	position: absolute;
+	height: calc(100% - 2rem);
+	top: 2rem;
+	left: 0;
+	align-items: center;
+	justify-content: center;
 }
