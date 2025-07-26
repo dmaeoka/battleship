@@ -403,7 +403,7 @@ function Battleship() {
 		const cellValue = board[row][col];
 		let cellClass = "cell";
 
-		if (cellValue === 1) cellClass += " ship";
+		if (cellValue === 1 && !isComputerBoard) cellClass += " ship";
 		else if (cellValue === 2) cellClass += " miss";
 		else if (cellValue === 3) cellClass += " hit";
 
@@ -475,7 +475,6 @@ function Battleship() {
 		setMessage("Game started! Attack the computer's board.");
 	}, [placeShips]);
 
-
 	return (
 		<Container className="battleship-game" maxWidth="md">
 			<Grid container spacing={2}>
@@ -484,15 +483,26 @@ function Battleship() {
 					<Typography variant="subtitle1" textAlign="center" gutterBottom>{message}</Typography>
 				</Grid>
 				<Grid size={12}>
-					Status: {gameStatus}
-					-- winer: {winner} --
 					{gameStatus === 'game over' && (
-						<button onClick={resetGame}>Play Again</button>
+						<Button
+							variant="contained"
+							color="primary"
+							size="small"
+							sx={{ minWidth: 'fit-content' }}
+							onClick={resetGame}
+						>Play Again</Button>
 					)}
 				</Grid>
 			</Grid>
-			<Grid container spacing={2}>
-				-- {inputValue} --
+			<Grid
+				container
+				spacing={2}
+				direction="row"
+				sx={{
+					justifyContent: "center",
+					alignItems: "center",
+				}}>
+
 				<Box
 					component="form"
 					noValidate
@@ -529,7 +539,7 @@ function Battleship() {
 							sx={{ minWidth: 'fit-content' }}
 							type="submit"
 							disabled={!isValid}
-						>Attack</Button>
+						>Attack {inputValue}</Button>
 					</Stack>
 					<Typography
 						variant="caption"
@@ -539,9 +549,9 @@ function Battleship() {
 				</Box>
 			</Grid>
 			<Grid container spacing={4}>
-				<Grid size={6}>
-					<h2>Your Board</h2>
-					<div style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
+				<Grid size={{ xs: 12, md: 6 }}>
+					<Typography variant="h3" textAlign="center">Your Board</Typography>
+					<Box style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
 						<div className="row">
 							<span>A</span>
 							<span>B</span>
@@ -566,12 +576,12 @@ function Battleship() {
 							<span>9</span>
 							<span>10</span>
 						</div>
-						<div className="board">{playerBoardCells}</div>
-					</div>
+						<Box className="board">{playerBoardCells}</Box>
+					</Box>
 				</Grid>
-				<Grid size={6}>
-					<h2>Computer's Board</h2>
-					<div style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
+				<Grid size={{ xs: 12, md: 6 }}>
+					<Typography variant="h3" textAlign="center">Computer's Board</Typography>
+					<Box style={{ position: "relative", paddingTop: "2rem", paddingLeft: "2rem" }}>
 						<div className="row">
 							<span>A</span>
 							<span>B</span>
@@ -596,8 +606,8 @@ function Battleship() {
 							<span>9</span>
 							<span>10</span>
 						</div>
-						<div className="board">{computerBoardCells}</div>
-					</div>
+						<Box className="board">{computerBoardCells}</Box>
+					</Box>
 				</Grid>
 			</Grid>
 		</Container>
