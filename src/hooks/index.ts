@@ -1,6 +1,6 @@
 // hooks.ts
 import { useState, useCallback } from "react";
-import { GameLogic } from "../gameLogic";
+import { GameLogic } from "../logic/gameLogic";
 import { convertToCoordinates, hasBeenAttacked } from "../utils";
 import {
 	CELL_VALUES,
@@ -52,8 +52,8 @@ export const useGameState = () => {
 		}, 1000);
 	}, [initializeGame]);
 
-	const showMessage = useCallback((text: string, type: Message["type"]) => {
-		setMessage({ text, type, open: true });
+	const showMessage = useCallback((text: string, type: Message["type"] = "info") => {
+		setMessage({ text, type });
 		setIsSnackbarOpen(true);
 	}, []);
 
@@ -76,6 +76,7 @@ export const useGameState = () => {
 		setPlayerShips,
 		setComputerShips,
 		setGameStatus,
+		setMessage,
 		initializeGame,
 		resetGame,
 		showMessage,
@@ -85,8 +86,7 @@ export const useGameState = () => {
 
 export const useInputHandler = () => {
 	const [inputValue, setInputValue] = useState("");
-	const [targetCoordinates, setTargetCoordinates] =
-		useState<Coordinates | null>(null);
+	const [targetCoordinates, setTargetCoordinates] = useState<Coordinates | null>(null);
 
 	const handleInputChange = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,6 +131,7 @@ export const useAttackHandler = (
 	setPlayerShips: (ships: Ship[]) => void,
 	setComputerShips: (ships: Ship[]) => void,
 	setGameStatus: (status: GameStatus) => void,
+	setMessage: (message: Message | undefined) => void,
 	showMessage: (text: string, type: Message["type"]) => void,
 ) => {
 	const attack = useCallback(
@@ -148,6 +149,7 @@ export const useAttackHandler = (
 			const newBoard = targetBoard.map((row) => [...row]);
 			const newShips = targetShips.map((ship) => ({ ...ship }));
 			let hit = false;
+			let hitShip: Ship | null = null;
 
 			// Check for hit
 			for (const ship of newShips) {
@@ -157,6 +159,7 @@ export const useAttackHandler = (
 					if (r === row && c === col) {
 						hit = true;
 						ship.hits++;
+						hitShip = ship;
 						break;
 					}
 				}
@@ -166,30 +169,52 @@ export const useAttackHandler = (
 			// Update board
 			newBoard[row][col] = hit ? CELL_VALUES.HIT : CELL_VALUES.MISS;
 
+			// Determine message based on hit/miss/sunk
+			let message = "";
+			let messageType: Message["type"] = "info";
+
+			if (hit && hitShip) {
+				const isShipSunk = hitShip.hits >= hitShip.length;
+
+				if (isShipSunk) {
+					// Ship is sunk - show ship type
+					const shipType =
+						hitShip.length === 5 ? "BATTLESHIP" : "DESTROYER";
+					message = isPlayer
+						? `${shipType} sunk!`
+						: `Your ${shipType} was sunk!`;
+					messageType = isPlayer ? "success" : "error";
+				} else {
+					// Ship hit but not sunk
+					message = isPlayer
+						? "You hit a ship!"
+						: "Computer hit your ship!";
+					messageType = isPlayer ? "success" : "error";
+				}
+			} else {
+				// Miss
+				message = isPlayer ? "You missed." : "Computer missed.";
+				messageType = "info";
+			}
+
 			// Update state
 			if (isPlayer) {
 				setComputerBoard(newBoard);
 				setComputerShips(newShips);
-				showMessage(
-					hit ? "You hit a ship!" : "You missed.",
-					hit ? "success" : "info",
-				);
 			} else {
 				setPlayerBoard(newBoard);
 				setPlayerShips(newShips);
-				showMessage(
-					hit ? "Computer hit your ship!" : "Computer missed.",
-					hit ? "error" : "info",
-				);
 			}
+
+			showMessage(message, messageType);
 
 			// Check for game over
 			if (GameLogic.areAllShipsDestroyed(newShips)) {
 				setGameStatus("game over");
-				showMessage(
-					attacker === "player" ? "You won!" : "Computer won!",
-					"success",
-				);
+				setMessage({
+					text: attacker === "player" ? "You won!" : "Computer won!",
+					type: "info",
+				});
 			} else if (isPlayer) {
 				// Schedule computer turn
 				setTimeout(() => {

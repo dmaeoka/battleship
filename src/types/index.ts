@@ -21,7 +21,6 @@ export interface AttackParams {
 }
 
 export interface Message {
-	open: boolean;
 	text: string;
 	type: "success" | "error" | "info" | "warning";
 }

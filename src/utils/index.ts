@@ -33,7 +33,8 @@ export const getCellClass = (
 ): string => {
 	let cellClass = "cell";
 
-	if (cellValue === CELL_VALUES.SHIP && !isComputerBoard) {
+	// if (cellValue === CELL_VALUES.SHIP && !isComputerBoard) {
+	if (cellValue === CELL_VALUES.SHIP) {
 		cellClass += " ship";
 	} else if (cellValue === CELL_VALUES.MISS) {
 		cellClass += " miss";

@@ -1,10 +1,15 @@
 // Battleship.tsx
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 import {
 	Alert,
-	Container,
 	Button,
+	Container,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
 	Grid,
 	Typography,
 	Snackbar,
@@ -28,14 +33,14 @@ function Battleship() {
 		setPlayerShips,
 		setComputerShips,
 		setGameStatus,
+		setMessage,
 		initializeGame,
 		resetGame,
 		showMessage,
 		hideSnackbar,
 	} = useGameState();
 
-	const { inputValue, targetCoordinates, handleInputChange, clearInput } =
-		useInputHandler();
+	const { inputValue, targetCoordinates, handleInputChange, clearInput } = useInputHandler();
 
 	const { attack } = useAttackHandler(
 		playerBoard,
@@ -48,7 +53,8 @@ function Battleship() {
 		setPlayerShips,
 		setComputerShips,
 		setGameStatus,
-		showMessage,
+		setMessage,
+		showMessage
 	);
 
 	const handlePlayerAttack = useCallback(
@@ -100,19 +106,6 @@ function Battleship() {
 					>
 						Battleship Game
 					</Typography>
-				</Grid>
-				<Grid size={12}>
-					{gameStatus === "game over" && (
-						<Button
-							variant="contained"
-							color="primary"
-							size="small"
-							sx={{ minWidth: "fit-content" }}
-							onClick={resetGame}
-						>
-							Play Again
-						</Button>
-					)}
 				</Grid>
 			</Grid>
 
@@ -167,6 +160,27 @@ function Battleship() {
 					{message?.text}
 				</Alert>
 			</Snackbar>
+			<Dialog
+				open={gameStatus === "game over"}
+				onClose={resetGame}
+				fullWidth={true}
+				maxWidth={"xs"}
+				aria-labelledby="alert-dialog-title"
+				aria-describedby="alert-dialog-description"
+			>
+				<DialogTitle id="alert-dialog-title">GAME OVER</DialogTitle>
+				<DialogContent>
+					<DialogContentText id="alert-dialog-description">{message?.text}</DialogContentText>
+				</DialogContent>
+				<DialogActions>
+					<Button
+						onClick={resetGame}
+						variant="contained"
+						color="primary"
+						size="small"
+						sx={{ minWidth: "fit-content" }}>Play Again</Button>
+				</DialogActions>
+			</Dialog>
 		</Container>
 	);
 }

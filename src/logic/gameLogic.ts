@@ -5,9 +5,9 @@ import {
 	DIRECTIONS,
 	CELL_VALUES,
 	GAME_CONFIG,
-} from "./constants";
-import { createEmptyBoard, isValidCoordinate, hasBeenAttacked } from "./utils";
-import type { Ship, Board, Coordinates } from "./types";
+} from "../constants";
+import { createEmptyBoard, isValidCoordinate, hasBeenAttacked } from "../utils";
+import type { Ship, Board, Coordinates } from "../types";
 
 export class GameLogic {
 	static doesShipCollide(ships: Ship[], newShip: Ship): boolean {
