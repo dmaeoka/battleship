@@ -1,5 +1,5 @@
 // Battleship.tsx
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback } from "react";
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 import {
 	Alert,

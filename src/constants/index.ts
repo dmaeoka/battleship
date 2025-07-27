@@ -30,3 +30,9 @@ export const GAME_CONFIG = {
 	COMPUTER_ATTACK_DELAY: 1500,
 	SNACKBAR_AUTO_HIDE_DURATION: 6000,
 } as const;
+
+export const CELL_STYLE = {
+	width: "100%",
+	height: 30,
+	borderRadius: ".25rem",
+};

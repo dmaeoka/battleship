@@ -25,6 +25,19 @@ export interface Message {
 	type: "success" | "error" | "info" | "warning";
 }
 
+export interface GameBoardProps {
+	board: Board;
+	title: string;
+	isComputerBoard?: boolean;
+	targetCoordinates?: Coordinates | null;
+}
+
+export interface CoordinateInputProps {
+	inputValue: string;
+	onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+	onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+}
+
 export type GameStatus = "setup" | "playing" | "game over";
 
 export type CellValue = 0 | 1 | 2 | 3; // 0: empty, 1: ship, 2: miss, 3: hit

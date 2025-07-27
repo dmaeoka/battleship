@@ -10,26 +10,8 @@ import {
 } from "@mui/material";
 import visuallyHidden from "@mui/utils/visuallyHidden";
 import { getCellClass } from "../utils";
-import type { Board, Coordinates } from "../types";
-
-interface GameBoardProps {
-	board: Board;
-	title: string;
-	isComputerBoard?: boolean;
-	targetCoordinates?: Coordinates | null;
-}
-
-interface CoordinateInputProps {
-	inputValue: string;
-	onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-}
-
-const ball = {
-	width: "100%",
-	height: 30,
-	borderRadius: ".25rem",
-};
+import { CELL_STYLE } from "../constants";
+import type { Board, GameBoardProps, CoordinateInputProps } from "../types";
 
 const GameCell: React.FC<{
 	board: Board;
@@ -54,7 +36,7 @@ const GameCell: React.FC<{
 					bounce: 0.5,
 				},
 			}}
-			style={ball}
+			style={CELL_STYLE}
 			className={cellClass}
 		/>
 	);
