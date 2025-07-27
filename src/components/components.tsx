@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import * as motion from "motion/react-client";
 import {
 	Box,

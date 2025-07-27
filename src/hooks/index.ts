@@ -52,10 +52,13 @@ export const useGameState = () => {
 		}, 1000);
 	}, [initializeGame]);
 
-	const showMessage = useCallback((text: string, type: Message["type"] = "info") => {
-		setMessage({ text, type });
-		setIsSnackbarOpen(true);
-	}, []);
+	const showMessage = useCallback(
+		(text: string, type: Message["type"] = "info") => {
+			setMessage({ text, type });
+			setIsSnackbarOpen(true);
+		},
+		[],
+	);
 
 	const hideSnackbar = useCallback(() => {
 		setIsSnackbarOpen(false);
@@ -86,7 +89,8 @@ export const useGameState = () => {
 
 export const useInputHandler = () => {
 	const [inputValue, setInputValue] = useState("");
-	const [targetCoordinates, setTargetCoordinates] = useState<Coordinates | null>(null);
+	const [targetCoordinates, setTargetCoordinates] =
+		useState<Coordinates | null>(null);
 
 	const handleInputChange = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {

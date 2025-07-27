@@ -1,5 +1,4 @@
-// Battleship.tsx
-import React, { useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 import {
 	Alert,
@@ -40,7 +39,8 @@ function Battleship() {
 		hideSnackbar,
 	} = useGameState();
 
-	const { inputValue, targetCoordinates, handleInputChange, clearInput } = useInputHandler();
+	const { inputValue, targetCoordinates, handleInputChange, clearInput } =
+		useInputHandler();
 
 	const { attack } = useAttackHandler(
 		playerBoard,
@@ -54,7 +54,7 @@ function Battleship() {
 		setComputerShips,
 		setGameStatus,
 		setMessage,
-		showMessage
+		showMessage,
 	);
 
 	const handlePlayerAttack = useCallback(
@@ -129,14 +129,14 @@ function Battleship() {
 			)}
 
 			<Grid container spacing={4}>
-				<Grid size={{ xs: 12, md: 6 }}>
+				<Grid size={{ xs: 12, md: 6 }} data-testid="player-board">
 					<GameBoard
 						board={playerBoard}
 						title="Your Board"
 						isComputerBoard={false}
 					/>
 				</Grid>
-				<Grid size={{ xs: 12, md: 6 }}>
+				<Grid size={{ xs: 12, md: 6 }} data-testid="computer-board">
 					<GameBoard
 						board={computerBoard}
 						title="Computer's Board"
@@ -170,7 +170,9 @@ function Battleship() {
 			>
 				<DialogTitle id="alert-dialog-title">GAME OVER</DialogTitle>
 				<DialogContent>
-					<DialogContentText id="alert-dialog-description">{message?.text}</DialogContentText>
+					<DialogContentText id="alert-dialog-description">
+						{message?.text}
+					</DialogContentText>
 				</DialogContent>
 				<DialogActions>
 					<Button
@@ -178,7 +180,10 @@ function Battleship() {
 						variant="contained"
 						color="primary"
 						size="small"
-						sx={{ minWidth: "fit-content" }}>Play Again</Button>
+						sx={{ minWidth: "fit-content" }}
+					>
+						Play Again
+					</Button>
 				</DialogActions>
 			</Dialog>
 		</Container>
