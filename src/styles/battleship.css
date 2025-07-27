@@ -1,3 +1,12 @@
+#root {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+	width: 100vw;
+}
+
 .board {
 	display: grid;
 	grid-template-columns: repeat(10, 1fr);
@@ -7,59 +16,123 @@
 }
 
 .cell {
+	position: relative;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	width: 100%;
 	height: 30px;
-	background-color: #00f;
+	background-color: #1e96fc;
 	font-size: 0.75rem;
 }
 
 .cell.target {
-	outline: 2px solid #f00;
+	outline: 6px solid #E55934;
+	outline-offset: -4px;
+}
+
+.cell.target::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	border: 2px solid #ff000077;
+	border-radius: inherit;
+	animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+	pointer-events: none;
+	background-color: #ff000077;
+}
+
+.cell.hit::before,
+.cell.miss::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	opacity: 0.8;
+	animation: explode 0.6s ease-out forwards;
+	pointer-events: none;
+	z-index: 2;
 }
 
 .cell.ship {
-	background-color: #666;
+	background-color: #8d99ae;
 }
 
 .cell.hit {
-	background-color: #f00;
+	background-color: #E55934;
+}
+
+.cell.hit::before {
+	background: radial-gradient(circle, #FA7921 20%, transparent 70%);
 }
 
 .cell.miss {
-	background-color: rgb(0, 2, 123);
+	background-color: #00296b;
+}
+
+.cell.miss::before {
+	background: radial-gradient(circle, #00296b 20%, transparent 70%);
+}
+
+
+.row, .col {
+	display: grid;
+	position: absolute;
+	font-size: 0.75rem;
+	align-items: center;
+	justify-items: center;
 }
 
 .row {
-	display: grid;
 	grid-template-columns: repeat(10, 1fr);
 	grid-template-rows: 1fr;
 	grid-column-gap: 2px;
 	grid-row-gap: 0px;
-	position: absolute;
+	height: 2rem;
 	width: calc(100% - 2rem);
 	top: 0;
 	left: 2rem;
-	height: 2rem;
-	font-size: 0.75rem;
-	align-items: center;
-	justify-items: center;
 }
 
 .col {
-	display: grid;
 	grid-template-columns: 1fr;
 	grid-template-rows: repeat(10, 1fr);
 	grid-column-gap: 0px;
 	grid-row-gap: 2px;
-	position: absolute;
 	height: calc(100% - 2rem);
 	width: 2rem;
 	top: 2rem;
 	left: 0;
-	font-size: 0.75rem;
-	align-items: center;
-	justify-items: center;
+}
+
+@keyframes ping {
+	75%, 100% {
+		transform: scale(1.5);
+		opacity: 0;
+	}
+}
+
+@keyframes explode {
+	0% {
+		transform: translate(-50%, -50%) scale(0.5);
+		opacity: 1;
+		filter: blur(1px);
+	}
+	70% {
+		transform: translate(-50%, -50%) scale(3);
+		opacity: 0.5;
+		filter: blur(4px);
+	}
+	100% {
+		transform: translate(-50%, -50%) scale(4);
+		opacity: 0;
+		filter: blur(6px);
+	}
 }

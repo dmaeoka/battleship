@@ -5,8 +5,8 @@ import Battleship from "../Battleship";
 describe("Battleship component - extended tests", () => {
 	it("renders player and computer game boards", () => {
 		render(<Battleship />);
-		expect(screen.getByTestId("player-board")).not.toBeNull();
-		expect(screen.getByTestId("computer-board")).not.toBeNull();
+		expect(screen.getByTestId("player-board")).toBeInTheDocument();
+		expect(screen.getByTestId("computer-board")).toBeInTheDocument();
 	});
 
 	it("shows error snackbar when invalid input is submitted", async () => {
@@ -17,13 +17,14 @@ describe("Battleship component - extended tests", () => {
 		await userEvent.type(input, "INVALID");
 		await userEvent.click(button);
 
-		expect(await screen.findByText(/invalid coordinates/i)).not.toBeNull();
+		expect(await screen.findByText(/invalid coordinates/i)).toBeInTheDocument();
 	});
 
 	it("accepts coordinate input", async () => {
 		render(<Battleship />);
 		const input = screen.getByRole("textbox");
 		await userEvent.type(input, "B4");
+		expect(input).toBeInTheDocument();
 		expect((input as HTMLInputElement).value).toBe("B4");
 	});
 });
