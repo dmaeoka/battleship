@@ -1,26 +1,3 @@
-#root {
-	width: 1280px;
-	margin: 0 auto;
-	padding: 2rem;
-	text-align: center;
-}
-
-.message {
-	margin: 20px 0;
-	font-size: 1.2em;
-	min-height: 2em;
-}
-
-.boards {
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: 20px;
-}
-
-.board-container {
-	width: 48%;
-}
-
 .board {
 	display: grid;
 	grid-template-columns: repeat(10, 1fr);
@@ -32,15 +9,15 @@
 .cell {
 	display: flex;
 	justify-content: center;
-	align-items: center;;
+	align-items: center;
 	width: 100%;
 	height: 30px;
 	background-color: #00f;
-	font-size: .75rem;
+	font-size: 0.75rem;
 }
 
 .cell.target {
-	background-color: #ddd;
+	outline: 2px solid #f00;
 }
 
 .cell.ship {
@@ -55,27 +32,6 @@
 	background-color: rgb(0, 2, 123);
 }
 
-.game-over {
-	margin-top: 20px;
-	padding: 20px;
-	background-color: #f8f8f8;
-	border-radius: 5px;
-}
-
-button {
-	padding: 10px 20px;
-	font-size: 1em;
-	background-color: #4CAF50;
-	color: white;
-	border: none;
-	border-radius: 4px;
-	cursor: pointer;
-}
-
-button:hover {
-	background-color: #45a049;
-}
-
 .row {
 	display: grid;
 	grid-template-columns: repeat(10, 1fr);
@@ -86,9 +42,13 @@ button:hover {
 	width: calc(100% - 2rem);
 	top: 0;
 	left: 2rem;
+	height: 2rem;
+	font-size: 0.75rem;
+	align-items: center;
+	justify-items: center;
 }
 
-.row2 {
+.col {
 	display: grid;
 	grid-template-columns: 1fr;
 	grid-template-rows: repeat(10, 1fr);
@@ -96,8 +56,10 @@ button:hover {
 	grid-row-gap: 2px;
 	position: absolute;
 	height: calc(100% - 2rem);
+	width: 2rem;
 	top: 2rem;
 	left: 0;
+	font-size: 0.75rem;
 	align-items: center;
-	justify-content: center;
+	justify-items: center;
 }
