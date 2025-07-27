@@ -70,8 +70,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 	const boardCells = useMemo(() => {
 		if (!board.length) return [];
 
-		return board.flatMap((row, rowIndex) =>
-			row.map((_, colIndex) => {
+		return board.flatMap((row, rowIndex: number) =>
+			row.map((_, colIndex: number) => {
 				const isTarget = Boolean(
 					targetCoordinates &&
 						targetCoordinates.row === rowIndex &&
