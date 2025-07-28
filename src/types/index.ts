@@ -1,4 +1,3 @@
-// types.ts
 export interface Ship {
 	row: number;
 	col: number;

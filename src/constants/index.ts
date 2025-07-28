@@ -1,4 +1,3 @@
-// constants.ts
 export const BOARD_SIZE = 10;
 export const BATTLESHIP_LENGTH = 5;
 export const DESTROYER_LENGTH = 4;

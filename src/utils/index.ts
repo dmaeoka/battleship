@@ -1,4 +1,3 @@
-// utils.ts
 import {
 	BOARD_SIZE,
 	VALID_COORDINATE_PATTERN,
