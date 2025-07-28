@@ -17,7 +17,9 @@ describe("Battleship component - extended tests", () => {
 		await userEvent.type(input, "INVALID");
 		await userEvent.click(button);
 
-		expect(await screen.findByText(/invalid coordinates/i)).toBeInTheDocument();
+		expect(
+			await screen.findByText(/invalid coordinates/i),
+		).toBeInTheDocument();
 	});
 
 	it("accepts coordinate input", async () => {

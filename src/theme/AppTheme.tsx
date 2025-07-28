@@ -7,8 +7,8 @@ import { red } from "@mui/material/colors";
  * Props interface for the AppTheme component
  */
 interface AppThemeProps {
-	children: React.ReactNode;      // Child components to wrap with theme
-	disableCustomTheme?: boolean;   // Flag to bypass custom theme and use default MUI theme
+	children: React.ReactNode; // Child components to wrap with theme
+	disableCustomTheme?: boolean; // Flag to bypass custom theme and use default MUI theme
 	themeComponents?: ThemeOptions["components"]; // Additional component overrides to merge
 }
 

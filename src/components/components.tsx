@@ -11,12 +11,17 @@ import {
 	Dialog,
 	DialogActions,
 	DialogContent,
-	DialogContentText,
 	DialogTitle,
 	Snackbar,
 } from "@mui/material";
 import visuallyHidden from "@mui/utils/visuallyHidden";
-import type { Board, GameBoardProps, CoordinateInputProps, GameSnackbarProps, GameOverDialogProps } from "../types";
+import type {
+	Board,
+	GameBoardProps,
+	CoordinateInputProps,
+	GameSnackbarProps,
+	GameDialogProps,
+} from "../types";
 import { getCellClass } from "../utils";
 import { CELL_STYLE, GAME_CONFIG } from "../constants";
 
@@ -36,7 +41,6 @@ const GameCell: React.FC<{
 	isComputerBoard: boolean;
 	isTarget: boolean;
 }> = ({ board, row, col, isComputerBoard, isTarget }) => {
-
 	// Get the value at this cell position (empty, ship, hit, miss, etc.)
 	const cellValue = board[row][col];
 
@@ -223,11 +227,7 @@ export function GameSnackbar({ isOpen, message, onClose }: GameSnackbarProps) {
 			onClose={onClose}
 			anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
 		>
-			<Alert
-				onClose={onClose}
-				severity={message?.type}
-				variant="filled"
-			>
+			<Alert onClose={onClose} severity={message?.type} variant="filled">
 				{message?.text}
 			</Alert>
 		</Snackbar>
@@ -237,7 +237,13 @@ export function GameSnackbar({ isOpen, message, onClose }: GameSnackbarProps) {
 /**
  * Game Over Dialog component that appears when game ends with option to play again
  */
-export function GameOverDialog({ isOpen, message, onClose }: GameOverDialogProps) {
+export function GameDialog({
+	title,
+	isOpen,
+	onClose,
+	button,
+	children,
+}: GameDialogProps) {
 	return (
 		<Dialog
 			open={isOpen}
@@ -247,11 +253,9 @@ export function GameOverDialog({ isOpen, message, onClose }: GameOverDialogProps
 			aria-labelledby="alert-dialog-title"
 			aria-describedby="alert-dialog-description"
 		>
-			<DialogTitle id="alert-dialog-title">GAME OVER</DialogTitle>
-			<DialogContent>
-				<DialogContentText id="alert-dialog-description">
-					{message?.text}
-				</DialogContentText>
+			<DialogTitle id="alert-dialog-title">{title}</DialogTitle>
+			<DialogContent id="alert-dialog-description">
+				{children}
 			</DialogContent>
 			<DialogActions>
 				<Button
@@ -261,7 +265,7 @@ export function GameOverDialog({ isOpen, message, onClose }: GameOverDialogProps
 					size="small"
 					sx={{ minWidth: "fit-content" }}
 				>
-					Play Again
+					{button}
 				</Button>
 			</DialogActions>
 		</Dialog>

@@ -74,7 +74,7 @@ export class GameLogic {
 				row: Math.floor(Math.random() * maxRow),
 				col: Math.floor(Math.random() * maxCol),
 				isHorizontal,
-				hits: 0,      // No hits initially
+				hits: 0, // No hits initially
 				length,
 			};
 
@@ -197,8 +197,8 @@ export class GameLogic {
 	 * @returns Coordinates for the AI's next attack
 	 */
 	static getSmartTarget(board: Board, ships: Ship[]): Coordinates {
-		const validTargets: Coordinates[] = [];      // Adjacent to isolated hits
-		const patternTargets: Coordinates[] = [];    // Following hit patterns
+		const validTargets: Coordinates[] = []; // Adjacent to isolated hits
+		const patternTargets: Coordinates[] = []; // Following hit patterns
 
 		// Single pass through the board to find strategic targets
 		for (let row = 0; row < BOARD_SIZE; row++) {
@@ -209,7 +209,11 @@ export class GameLogic {
 					!this.isHitFromDestroyedShip(row, col, ships)
 				) {
 					// Add adjacent cells for potential targeting
-					const adjacentCells = this.getAdjacentCells(row, col, board);
+					const adjacentCells = this.getAdjacentCells(
+						row,
+						col,
+						board,
+					);
 					validTargets.push(...adjacentCells);
 
 					// Check for horizontal hit patterns (two or more consecutive hits)

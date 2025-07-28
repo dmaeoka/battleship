@@ -13,9 +13,9 @@ import { createRoot } from "react-dom/client";
 import CssBaseline from "@mui/material/CssBaseline";
 
 // Application-specific imports
-import AppTheme from "./theme/AppTheme.tsx";          // Custom theme provider component
+import AppTheme from "./theme/AppTheme.tsx"; // Custom theme provider component
 import Battleship from "./components/Battleship.tsx"; // Main game component
-import "./styles/battleship.css";                     // Custom CSS styles for game-specific styling
+import "./styles/battleship.css"; // Custom CSS styles for game-specific styling
 
 /**
  * Application entry point that sets up the React application with proper theming and styling

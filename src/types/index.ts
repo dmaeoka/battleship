@@ -48,11 +48,16 @@ export type Board = CellValue[][];
 export interface GameSnackbarProps {
 	isOpen: boolean;
 	message: Message | null | undefined;
-	onClose: (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => void;
+	onClose: (
+		event: React.SyntheticEvent | Event,
+		reason?: SnackbarCloseReason,
+	) => void;
 }
 
-export interface GameOverDialogProps {
+export interface GameDialogProps {
 	isOpen: boolean;
-	message: Message | null | undefined;
+	title?: string;
+	children?: React.ReactNode | string;
+	button: string;
 	onClose: () => void;
 }

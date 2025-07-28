@@ -8,14 +8,14 @@ This is a single-player version of the classic **Battleship** game, developed as
 
 - 10x10 game grid with labeled rows and columns (A–J, 1–10)
 - Random placement of ships:
-  - 1 Battleship (5 cells)
-  - 2 Destroyers (4 cells each)
+    - 1 Battleship (5 cells)
+    - 2 Destroyers (4 cells each)
 - Input validation (e.g., "A5", "J10")
 - Clear feedback:
-  - **Hit**
-  - **Miss**
-  - **Sunk**
-  - **Game Over**
+    - **Hit**
+    - **Miss**
+    - **Sunk**
+    - **Game Over**
 - Snackbar messages and animations
 - Responsive UI built with **React**, **TypeScript**, and **MUI**
 - Fully tested with **Jest** and **React Testing Library**
@@ -40,6 +40,7 @@ This is a single-player version of the classic **Battleship** game, developed as
 git clone https://github.com/dmaeoka/battleship.git
 cd battleship
 ```
+
 ### 2. Install dependencies
 
 ```bash
@@ -107,11 +108,13 @@ src/
 ├── main.tsx             # HTML entry point
 ├── index.html           # HTML entry point
 ```
+
 ---
 
 ## If I Had More Time
 
 Given additional time, I would:
+
 - Add more animations
 - Improve **mobile responsiveness**
 - Add **keyboard support** for faster input

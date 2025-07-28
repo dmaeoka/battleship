@@ -38,18 +38,23 @@ import type {
  * @return hideSnackbar
  */
 export const useGameState = () => {
+	// Have the user seen the instructions?
+	const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
+		return localStorage.getItem("battleship-instructions-seen") === "true";
+	});
+
 	// Game board states - 2D arrays representing the grid
-	const [playerBoard, setPlayerBoard] = useState<Board>([]);      // Player's board with their ships
-	const [computerBoard, setComputerBoard] = useState<Board>([]);  // Computer's board with computer ships
+	const [playerBoard, setPlayerBoard] = useState<Board>([]); // Player's board with their ships
+	const [computerBoard, setComputerBoard] = useState<Board>([]); // Computer's board with computer ships
 
 	// Ship states - arrays of ship objects containing position and hit information
-	const [computerShips, setComputerShips] = useState<Ship[]>([]);  // Computer's ships data
-	const [playerShips, setPlayerShips] = useState<Ship[]>([]);      // Player's ships data
+	const [computerShips, setComputerShips] = useState<Ship[]>([]); // Computer's ships data
+	const [playerShips, setPlayerShips] = useState<Ship[]>([]); // Player's ships data
 
 	// Game flow states
 	const [gameStatus, setGameStatus] = useState<GameStatus>("setup"); // Current game phase
-	const [message, setMessage] = useState<Message>();                 // Current message to display
-	const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);       // Snackbar visibility flag
+	const [message, setMessage] = useState<Message>(); // Current message to display
+	const [isSnackbarOpen, setIsSnackbarOpen] = useState(false); // Snackbar visibility flag
 
 	/**
 	 * Initializes a new game by placing ships randomly on both boards
@@ -65,9 +70,9 @@ export const useGameState = () => {
 		setPlayerShips(playerResult.ships);
 		setComputerBoard(computerResult.board);
 		setComputerShips(computerResult.ships);
-		setGameStatus("playing");          // Enable gameplay
-		setMessage(undefined);             // Clear any previous messages
-		setIsSnackbarOpen(false);         // Hide any notifications
+		setGameStatus("playing"); // Enable gameplay
+		setMessage(undefined); // Clear any previous messages
+		setIsSnackbarOpen(false); // Hide any notifications
 	}, []);
 
 	/**
@@ -80,15 +85,22 @@ export const useGameState = () => {
 		setComputerBoard([]);
 		setPlayerShips([]);
 		setComputerShips([]);
-		setGameStatus("setup");           // Return to setup phase
+		setGameStatus("setup"); // Return to setup phase
 		setMessage(undefined);
 		setIsSnackbarOpen(false);
 
 		// Delay before starting new game for better UX
 		setTimeout(() => {
+			localStorage.setItem("battleship-instructions-seen", "false");
+			setHasSeenInstructions(false);
 			initializeGame();
 		}, 1000);
 	}, [initializeGame]);
+
+	const closeDialog = useCallback(() => {
+		localStorage.setItem("battleship-instructions-seen", "true");
+		setHasSeenInstructions(true);
+	}, []);
 
 	/**
 	 * Displays a message to the user via snackbar notification
@@ -98,7 +110,7 @@ export const useGameState = () => {
 	const showMessage = useCallback(
 		(text: string, type: Message["type"] = "info") => {
 			setMessage({ text, type });
-			setIsSnackbarOpen(true);      // Show the snackbar
+			setIsSnackbarOpen(true); // Show the snackbar
 		},
 		[],
 	);
@@ -119,6 +131,7 @@ export const useGameState = () => {
 		gameStatus,
 		message,
 		isSnackbarOpen,
+		hasSeenInstructions,
 		// State setters for direct manipulation
 		setPlayerBoard,
 		setComputerBoard,
@@ -129,6 +142,7 @@ export const useGameState = () => {
 		// Game control functions
 		initializeGame,
 		resetGame,
+		closeDialog,
 		showMessage,
 		hideSnackbar,
 	};
@@ -143,11 +157,11 @@ export const useGameState = () => {
  * @returns clearInput
  */
 export const useInputHandler = () => {
-
 	// Current input field value
 	const [inputValue, setInputValue] = useState("");
 	// Parsed coordinates for highlighting
-	const [targetCoordinates, setTargetCoordinates] = useState<Coordinates | null>(null);
+	const [targetCoordinates, setTargetCoordinates] =
+		useState<Coordinates | null>(null);
 
 	/**
 	 * Handles changes to the coordinate input field
@@ -158,7 +172,7 @@ export const useInputHandler = () => {
 			// Convert to uppercase and limit to 3 characters (e.g., "A10")
 			let value = event.target.value.toUpperCase();
 			if (value.length > 3) {
-				value = value.slice(0, 3);    // Prevent overly long input
+				value = value.slice(0, 3); // Prevent overly long input
 			}
 			setInputValue(value);
 
@@ -186,10 +200,10 @@ export const useInputHandler = () => {
 	}, []);
 
 	return {
-		inputValue,          // Current input field value
-		targetCoordinates,   // Coordinates to highlight on board (or null)
-		handleInputChange,   // Input change handler
-		clearInput,          // Function to clear input
+		inputValue, // Current input field value
+		targetCoordinates, // Coordinates to highlight on board (or null)
+		handleInputChange, // Input change handler
+		clearInput, // Function to clear input
 	};
 };
 
@@ -260,12 +274,12 @@ export const useAttackHandler = (
 					// Check if attack coordinates match ship position
 					if (r === row && c === col) {
 						hit = true;
-						ship.hits++;        // Increment hit counter for this ship
+						ship.hits++; // Increment hit counter for this ship
 						hitShip = ship;
 						break;
 					}
 				}
-				if (hit) break;  // Stop searching once we find a hit
+				if (hit) break; // Stop searching once we find a hit
 			}
 
 			// Update the board cell based on hit or miss

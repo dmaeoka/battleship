@@ -1,12 +1,13 @@
 import { useEffect, useCallback } from "react";
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
-import {
-	Container,
-	Grid,
-	Typography,
-} from "@mui/material";
+import { Container, Grid, Typography } from "@mui/material";
 import { useGameState, useInputHandler, useAttackHandler } from "../hooks";
-import { GameBoard, CoordinateInput, GameSnackbar, GameOverDialog } from "./components";
+import {
+	GameBoard,
+	CoordinateInput,
+	GameSnackbar,
+	GameDialog,
+} from "./components";
 import { convertToCoordinates, hasBeenAttacked } from "../utils";
 
 /**
@@ -16,31 +17,33 @@ import { convertToCoordinates, hasBeenAttacked } from "../utils";
 function Battleship() {
 	// Load the hooks from gameState
 	const {
-		playerBoard,        // Player's board with ships and attacks
-		computerBoard,      // Computer's board with ships and attacks
-		playerShips,        // The collection of player's ship with positions and their status
-		computerShips,      // The collection of computer's ship with positions and their status
-		gameStatus,         // Current game state: "setup" | "playing" | "game over"
-		message,            // Toast message for the user
-		isSnackbarOpen,     // Check if snackbar is open
-		setPlayerBoard,     // Set function to update player's board state
-		setComputerBoard,   // Set function to update computer's board state
-		setPlayerShips,     // Set function to update player's ships state
-		setComputerShips,   // Set function to update computer's ships state
-		setGameStatus,      // Set function to update game status
-		setMessage,         // Set function to set message content and type
-		initializeGame,     // Set function to set up a new game with random ship placement
-		resetGame,          // Set function to restart the game completely
-		showMessage,        // Set function to display a message in the snackbar
-		hideSnackbar,       // Set function to hide the snackbar notification
+		playerBoard, // Player's board with ships and attacks
+		computerBoard, // Computer's board with ships and attacks
+		playerShips, // The collection of player's ship with positions and their status
+		computerShips, // The collection of computer's ship with positions and their status
+		gameStatus, // Current game state: "setup" | "playing" | "game over"
+		message, // Toast message for the user
+		isSnackbarOpen, // Check if snackbar is open
+		hasSeenInstructions,
+		setPlayerBoard, // Set function to update player's board state
+		setComputerBoard, // Set function to update computer's board state
+		setPlayerShips, // Set function to update player's ships state
+		setComputerShips, // Set function to update computer's ships state
+		setGameStatus, // Set function to update game status
+		setMessage, // Set function to set message content and type
+		initializeGame, // Set function to set up a new game with random ship placement
+		resetGame, // Set function to restart the game completely
+		showMessage, // Set function to display a message in the snackbar
+		hideSnackbar, // Set function to hide the snackbar notification
+		closeDialog, // Set function to close the dialog
 	} = useGameState();
 
 	// Input handling hook - manages coordinate input field state and validation
 	const {
-		inputValue,         // Raw value in the coordinate input field
-		targetCoordinates,  // Parsed coordinates values from input (for highlighting on board)
-		handleInputChange,  // Function to handle input field changes
-		clearInput          // Function to clear the input field
+		inputValue, // Raw value in the coordinate input field
+		targetCoordinates, // Parsed coordinates values from input (for highlighting on board)
+		handleInputChange, // Function to handle input field changes
+		clearInput, // Function to clear the input field
 	} = useInputHandler();
 
 	// Attack handling hook - manages attack logic for both player and computer
@@ -95,10 +98,7 @@ function Battleship() {
 	 * Prevents closing when user clicks away but allows manual close
 	 */
 	const handleSnackbarClose = useCallback(
-		(
-			_e: React.SyntheticEvent | Event,
-			reason?: SnackbarCloseReason,
-		) => {
+		(_e: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => {
 			// Don't close snackbar if user just clicked elsewhere
 			if (reason === "clickaway") return;
 			hideSnackbar();
@@ -175,12 +175,32 @@ function Battleship() {
 				onClose={handleSnackbarClose}
 			/>
 
+			{/* Initla Game Dialog */}
+			<GameDialog
+				title="Battleship Game - How to Play"
+				isOpen={!hasSeenInstructions}
+				onClose={closeDialog}
+				button="Let's play"
+			>
+				<span>You are tasked to sink one Battleship (5 cells) and two Destroyers (4 cells each) on a 10×10 grid.</span>
+				<ul>
+					<li>Enter coordinates like A5 or J10 to attack (A–J for columns, 1–10 for rows).
+					</li>
+					<li>You’ll get feedback: Hit, Miss, Sunk, or Game Over.</li>
+					<li>Invalid input shows an error and highlights the cell.</li>
+				</ul>
+				<span><strong>Good luck, Commander!</strong></span>
+			</GameDialog>
+
 			{/* Game Over Dialog */}
-			<GameOverDialog
+			<GameDialog
+				title="Game Over"
 				isOpen={gameStatus === "game over"}
-				message={message}
 				onClose={resetGame}
-			/>
+				button="Play Again"
+			>
+				{message?.text}
+			</GameDialog>
 		</Container>
 	);
 }
