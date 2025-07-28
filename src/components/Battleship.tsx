@@ -1,22 +1,13 @@
 import { useEffect, useCallback } from "react";
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 import {
-	Alert,
-	Button,
 	Container,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
 	Grid,
 	Typography,
-	Snackbar,
 } from "@mui/material";
 import { useGameState, useInputHandler, useAttackHandler } from "../hooks";
-import { GameBoard, CoordinateInput } from "./components";
+import { GameBoard, CoordinateInput, GameSnackbar, GameOverDialog } from "./components";
 import { convertToCoordinates, hasBeenAttacked } from "../utils";
-import { GAME_CONFIG } from "../constants";
 
 /**
  * Main Battleship game component that renders the complete game interface
@@ -177,50 +168,19 @@ function Battleship() {
 				</Grid>
 			</Grid>
 
-			{/* Snackbar for temporary notifications (hits, misses, warnings, etc.) */}
-			<Snackbar
-				open={isSnackbarOpen}
-				autoHideDuration={GAME_CONFIG.SNACKBAR_AUTO_HIDE_DURATION}
+			{/* Snackbar for temporary notifications */}
+			<GameSnackbar
+				isOpen={isSnackbarOpen}
+				message={message}
 				onClose={handleSnackbarClose}
-				anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-			>
-				<Alert
-					onClose={handleSnackbarClose}
-					severity={message?.type} // "success", "error", "warning", "info"
-					variant="filled"
-				>
-					{message?.text}
-				</Alert>
-			</Snackbar>
+			/>
 
-			{/* Game Over Dialog - Appears when game ends with option to play again */}
-			<Dialog
-				open={gameStatus === "game over"}
+			{/* Game Over Dialog */}
+			<GameOverDialog
+				isOpen={gameStatus === "game over"}
+				message={message}
 				onClose={resetGame}
-				fullWidth={true}
-				maxWidth={"xs"}
-				aria-labelledby="alert-dialog-title"
-				aria-describedby="alert-dialog-description"
-			>
-				<DialogTitle id="alert-dialog-title">GAME OVER</DialogTitle>
-				<DialogContent>
-					<DialogContentText id="alert-dialog-description">
-						{/* Shows win/lose message */}
-						{message?.text}
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button
-						onClick={resetGame}
-						variant="contained"
-						color="primary"
-						size="small"
-						sx={{ minWidth: "fit-content" }}
-					>
-						Play Again
-					</Button>
-				</DialogActions>
-			</Dialog>
+			/>
 		</Container>
 	);
 }

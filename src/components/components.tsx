@@ -7,11 +7,18 @@ import {
 	TextField,
 	Stack,
 	Button,
+	Alert,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
+	Snackbar,
 } from "@mui/material";
 import visuallyHidden from "@mui/utils/visuallyHidden";
+import type { Board, GameBoardProps, CoordinateInputProps, GameSnackbarProps, GameOverDialogProps } from "../types";
 import { getCellClass } from "../utils";
-import { CELL_STYLE } from "../constants";
-import type { Board, GameBoardProps, CoordinateInputProps } from "../types";
+import { CELL_STYLE, GAME_CONFIG } from "../constants";
 
 /**
  * Renders an individual cell component for the game board
@@ -58,17 +65,14 @@ const GameCell: React.FC<{
 /**
  * Main game board component that displays a 10x10 grid
  * Shows either player's board (with ships visible) or computer's board (ships hidden)
- * @param {Board} board 2D array representing the game board state
- * @param {string} title Title to display above the board ("Your Board" / "Computer's Board")
- * @param {boolean} isComputerBoard Whether this is the computer's board (affects ship visibility)
- * @param {Coordinates} targetCoordinates Optional coordinates to highlight as target
+ * @param {GameBoardProps} Object containing board, title, isComputerBoard, targetCoordinates
  * @returns The battleship board
  */
 export const GameBoard: React.FC<GameBoardProps> = ({
-	board,
-	title,
-	isComputerBoard = false,
-	targetCoordinates,
+	board, // 2D array representing the game board state
+	title, // Title to display above the board ("Your Board" / "Computer's Board")
+	isComputerBoard = false, // Whether this is the computer's board (affects ship visibility)
+	targetCoordinates, // Optional coordinates to highlight as target
 }) => {
 	/**
 	 * Memoized calculation of all board cells to prevent unnecessary re-renders
@@ -143,9 +147,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
 /**
  * Coordinate input component for players to enter attack coordinates
- * @param {string} inputValue Current value in the input field
- * @param {event} boaonInputChangerd Handler for input field changes
- * @param {event} onSubmit Handler for form submission (attack execution)
+ * @param {CoordinateInputProps} // Object containing inputValue, onInputChange, onSubmit
  * @returns The form
  */
 export const CoordinateInput: React.FC<CoordinateInputProps> = ({
@@ -209,3 +211,59 @@ export const CoordinateInput: React.FC<CoordinateInputProps> = ({
 		</Box>
 	);
 };
+
+/**
+ * Snackbar component for temporary notifications (hits, misses, warnings, etc.)
+ */
+export function GameSnackbar({ isOpen, message, onClose }: GameSnackbarProps) {
+	return (
+		<Snackbar
+			open={isOpen}
+			autoHideDuration={GAME_CONFIG.SNACKBAR_AUTO_HIDE_DURATION}
+			onClose={onClose}
+			anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+		>
+			<Alert
+				onClose={onClose}
+				severity={message?.type}
+				variant="filled"
+			>
+				{message?.text}
+			</Alert>
+		</Snackbar>
+	);
+}
+
+/**
+ * Game Over Dialog component that appears when game ends with option to play again
+ */
+export function GameOverDialog({ isOpen, message, onClose }: GameOverDialogProps) {
+	return (
+		<Dialog
+			open={isOpen}
+			onClose={onClose}
+			fullWidth={true}
+			maxWidth={"xs"}
+			aria-labelledby="alert-dialog-title"
+			aria-describedby="alert-dialog-description"
+		>
+			<DialogTitle id="alert-dialog-title">GAME OVER</DialogTitle>
+			<DialogContent>
+				<DialogContentText id="alert-dialog-description">
+					{message?.text}
+				</DialogContentText>
+			</DialogContent>
+			<DialogActions>
+				<Button
+					onClick={onClose}
+					variant="contained"
+					color="primary"
+					size="small"
+					sx={{ minWidth: "fit-content" }}
+				>
+					Play Again
+				</Button>
+			</DialogActions>
+		</Dialog>
+	);
+}

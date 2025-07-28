@@ -1,3 +1,5 @@
+import type { SnackbarCloseReason } from "@mui/material/Snackbar";
+
 export interface Ship {
 	row: number;
 	col: number;
@@ -42,3 +44,15 @@ export type GameStatus = "setup" | "playing" | "game over";
 export type CellValue = 0 | 1 | 2 | 3; // 0: empty, 1: ship, 2: miss, 3: hit
 
 export type Board = CellValue[][];
+
+export interface GameSnackbarProps {
+	isOpen: boolean;
+	message: Message | null | undefined;
+	onClose: (event: React.SyntheticEvent | Event, reason?: SnackbarCloseReason) => void;
+}
+
+export interface GameOverDialogProps {
+	isOpen: boolean;
+	message: Message | null | undefined;
+	onClose: () => void;
+}
