@@ -1,4 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/// <reference types="vitest/globals" />
+
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+	type Mock,
+} from "vitest";
 import { GAME_CONFIG } from "../../constants";
 import { GameLogic } from "../../logic/gameLogic";
 import type { Ship } from "../../types";
@@ -74,7 +84,7 @@ describe("useGameStore", () => {
 				.map(() => Array(10).fill(0));
 			const mockShips: Ship[] = [
 				{
-					type: "Battleship",
+					type: "BATTLESHIP",
 					length: 5,
 					hits: 0,
 					row: 0,
@@ -83,7 +93,7 @@ describe("useGameStore", () => {
 				},
 			];
 
-			(GameLogic.placeShipsOnBoard as vi.Mock).mockReturnValue({
+			(GameLogic.placeShipsOnBoard as Mock).mockReturnValue({
 				board: mockBoard,
 				ships: mockShips,
 			});
@@ -140,7 +150,7 @@ describe("useGameStore", () => {
 				.map(() => Array(10).fill(0));
 			const computerShips: Ship[] = [
 				{
-					type: "Destroyer",
+					type: "DESTROYER",
 					length: 4,
 					hits: 0,
 					row: 0,
@@ -166,7 +176,7 @@ describe("useGameStore", () => {
 		});
 
 		it("should register a player hit and not trigger computer turn if game over", () => {
-			(GameLogic.areAllShipsDestroyed as vi.Mock).mockReturnValue(true);
+			(GameLogic.areAllShipsDestroyed as Mock).mockReturnValue(true);
 
 			useGameStore.getState().attack("player", 0, 0);
 
@@ -182,8 +192,8 @@ describe("useGameStore", () => {
 		});
 
 		it("should register a player miss and trigger computer turn", () => {
-			(GameLogic.areAllShipsDestroyed as vi.Mock).mockReturnValue(false);
-			(GameLogic.getSmartTarget as vi.Mock).mockReturnValue({
+			(GameLogic.areAllShipsDestroyed as Mock).mockReturnValue(false);
+			(GameLogic.getSmartTarget as Mock).mockReturnValue({
 				row: 5,
 				col: 5,
 			});
@@ -205,7 +215,7 @@ describe("useGameStore", () => {
 
 		it("should sink a ship and show the correct message", () => {
 			const shipToSink: Ship = {
-				type: "Destroyer",
+				type: "DESTROYER",
 				length: 2,
 				hits: 1, // One hit away from sinking
 				row: 0,
@@ -213,13 +223,13 @@ describe("useGameStore", () => {
 				isHorizontal: true,
 			};
 			useGameStore.setState({ computerShips: [shipToSink] });
-			(GameLogic.areAllShipsDestroyed as vi.Mock).mockReturnValue(false);
+			(GameLogic.areAllShipsDestroyed as Mock).mockReturnValue(false);
 
 			useGameStore.getState().attack("player", 0, 1); // The final hit
 
 			const state = useGameStore.getState();
 			expect(state.computerShips[0].hits).toBe(2);
-			expect(state.message?.text).toBe("Destroyer sunk!");
+			expect(state.message?.text).toBe("DESTROYER sunk!");
 			expect(state.message?.type).toBe("success");
 		});
 
