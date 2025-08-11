@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
@@ -17,5 +19,21 @@ export default defineConfig({
 		chunkSizeWarningLimit: 1000, // Set to 1MB, adjust as needed
 		// Enable minification (esbuild is default and faster)
 		minify: true,
+	},
+	test: {
+		environment: "jsdom",
+		globals: true,
+		setupFiles: "./setupTests.ts",
+		css: true,
+		coverage: {
+			provider: "v8", // or 'istanbul'
+			reporter: ["text", "json", "html"],
+			// Reports will be generated in a `coverage` directory
+			reportsDirectory: "./coverage",
+			// Include all files in the src directory
+			include: ["src/**/*.{ts,tsx}"],
+			// Exclude files that don't need to be tested
+			exclude: ["src/main.tsx", "src/types", "src/vite-env.d.ts"],
+		},
 	},
 });

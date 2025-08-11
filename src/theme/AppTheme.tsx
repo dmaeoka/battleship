@@ -73,10 +73,7 @@ export default function AppTheme(props: AppThemeProps) {
 
 	// Main render: wrap children with MUI ThemeProvider
 	return (
-		<ThemeProvider
-			theme={theme}
-			disableTransitionOnChange // Prevents flickering during theme transitions
-		>
+		<ThemeProvider theme={theme} disableTransitionOnChange>
 			{children}
 		</ThemeProvider>
 	);

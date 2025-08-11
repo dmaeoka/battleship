@@ -1,11 +1,13 @@
 import type { SnackbarCloseReason } from "@mui/material/Snackbar";
 
+type ShipType = "BATTLESHIP" | "DESTROYER";
 export interface Ship {
 	row: number;
 	col: number;
 	isHorizontal: boolean;
 	hits: number;
 	length: number;
+	type?: ShipType;
 }
 
 export interface Coordinates {
@@ -48,7 +50,7 @@ export type Board = CellValue[][];
 export interface GameSnackbarProps {
 	isOpen: boolean;
 	message: Message | null | undefined;
-	onClose: (
+	onClose?: (
 		event: React.SyntheticEvent | Event,
 		reason?: SnackbarCloseReason,
 	) => void;

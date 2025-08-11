@@ -42,11 +42,11 @@ export class GameLogic {
 
 				// Check for collision using set lookup (O(1))
 				if (newShipCells.has(`${shipRow}-${shipCol}`)) {
-					return true; // Collision detected
+					return true;
 				}
 			}
 		}
-		return false; // No collision found
+		return false;
 	}
 
 	/**
@@ -74,13 +74,14 @@ export class GameLogic {
 				row: Math.floor(Math.random() * maxRow),
 				col: Math.floor(Math.random() * maxCol),
 				isHorizontal,
-				hits: 0, // No hits initially
+				hits: 0,
+				type: length === 5 ? "BATTLESHIP" : "DESTROYER",
 				length,
 			};
 
 			// Check if this placement is valid (no collisions)
 			if (!this.doesShipCollide(existingShips, ship)) {
-				return ship; // Found valid placement
+				return ship;
 			}
 			attempts++;
 		}
@@ -92,6 +93,7 @@ export class GameLogic {
 			col: 0,
 			isHorizontal: true,
 			hits: 0,
+			type: length === 5 ? "BATTLESHIP" : "DESTROYER",
 			length,
 		};
 	}
@@ -115,10 +117,9 @@ export class GameLogic {
 		for (const ship of ships) {
 			// Mark each cell occupied by this ship
 			for (let i = 0; i < ship.length; i++) {
-				// Calculate cell position based on ship orientation
 				const r = ship.isHorizontal ? ship.row : ship.row + i;
 				const c = ship.isHorizontal ? ship.col + i : ship.col;
-				board[r][c] = CELL_VALUES.SHIP; // Mark as ship cell
+				board[r][c] = CELL_VALUES.SHIP;
 			}
 		}
 

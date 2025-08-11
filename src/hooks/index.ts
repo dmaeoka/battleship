@@ -362,6 +362,7 @@ export const useAttackHandler = (
 			setComputerShips,
 			setPlayerShips,
 			setGameStatus,
+			setMessage,
 			showMessage,
 		],
 	);
