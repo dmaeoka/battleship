@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {
 	Box,
 	Typography,
@@ -7,8 +8,9 @@ import {
 	Button,
 } from "@mui/material";
 import visuallyHidden from "@mui/utils/visuallyHidden";
+import { VALID_COORDINATE_PATTERN } from "../constants";
+import { convertToCoordinates } from "../utils";
 import { useInputActions, useInputState } from "../stores/gameStore";
-import { useCallback } from "react";
 
 /**
  * Coordinate input component for players to enter attack coordinates
@@ -17,7 +19,7 @@ import { useCallback } from "react";
  */
 const CoordinateInput = () => {
 	const { inputValue } = useInputState();
-	const { setInput, handlePlayerAttack } = useInputActions();
+	const { setInput, setTargetCoordinates, handlePlayerAttack } = useInputActions();
 
 	const handleSubmit = useCallback(
 		(e: React.FormEvent<HTMLFormElement>): void => {
@@ -33,15 +35,29 @@ const CoordinateInput = () => {
 		): void => {
 			try {
 				let value = e.currentTarget.value.toUpperCase();
+
 				if (value.length > 3) {
 					value = value.slice(0, 3);
 				}
 				setInput(value);
+
+				const isValidFormat = VALID_COORDINATE_PATTERN.test(value);
+
+				if (isValidFormat) {
+					const coordinates = convertToCoordinates(value);
+					setTargetCoordinates(coordinates);
+				} else {
+					// Clear highlighting for invalid input
+					setTargetCoordinates(null);
+				}
+
 			} catch (error) {
+				setInput("");
+				setTargetCoordinates(null);
 				console.warn(error);
 			}
 		},
-		[setInput],
+		[setInput, setTargetCoordinates],
 	);
 
 	return (

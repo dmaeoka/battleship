@@ -47,6 +47,7 @@ interface GameActions {
 	setInput: (value: string) => void;
 	clearInput: () => void;
 	handlePlayerAttack: (inputValue: string) => void;
+	setTargetCoordinates: (coordinates: Coordinates | null) => void;
 }
 
 type GameStore = GameState & GameActions;
@@ -270,6 +271,15 @@ export const useGameStore = create<GameStore>()(
 						console.warn(error);
 					}
 				},
+				setTargetCoordinates: (coordinates: Coordinates | null) => {
+					try {
+						set((state) => {
+							state.targetCoordinates = coordinates;
+						});
+					} catch (error) {
+						console.warn(error);
+					}
+				},
 				clearInput: () => {
 					try {
 						set((state) => {
@@ -287,9 +297,12 @@ export const useGameStore = create<GameStore>()(
 							showMessage,
 							attack,
 							clearInput,
+							setTargetCoordinates
 						} = get();
 
 						clearInput();
+
+						setTargetCoordinates(null);
 
 						if (!coords) {
 							showMessage("Invalid coordinates.", "error");
@@ -368,5 +381,6 @@ export const useInputActions = () =>
 			setInput: state.setInput,
 			clearInput: state.clearInput,
 			handlePlayerAttack: state.handlePlayerAttack,
+			setTargetCoordinates: state.setTargetCoordinates,
 		})),
 	);

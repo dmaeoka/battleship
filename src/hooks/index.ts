@@ -169,6 +169,7 @@ export const useInputHandler = () => {
 	 */
 	const handleInputChange = useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
+			console.log(event);
 			// Convert to uppercase and limit to 3 characters (e.g., "A10")
 			let value = event.target.value.toUpperCase();
 			if (value.length > 3) {
@@ -178,9 +179,11 @@ export const useInputHandler = () => {
 
 			// Check if input matches valid coordinate pattern (A1, B5, J10, etc.)
 			const isValidFormat = VALID_COORDINATE_PATTERN.test(value);
+
 			if (isValidFormat) {
 				// Convert valid input to grid coordinates for highlighting
 				const coordinates = convertToCoordinates(value);
+
 				setTargetCoordinates(coordinates);
 			} else {
 				// Clear highlighting for invalid input
