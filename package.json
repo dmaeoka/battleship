@@ -19,12 +19,15 @@
 		"@fontsource/roboto": "^5.2.6",
 		"@mui/icons-material": "^7.2.0",
 		"@mui/material": "^7.2.0",
+		"@tailwindcss/vite": "^4.1.12",
 		"axios": "^1.11.0",
 		"immer": "^10.1.1",
+		"lucide-react": "^0.539.0",
 		"motion": "^12.23.9",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"styled-components": "^6.1.19",
+		"tailwindcss": "^4.1.12",
 		"zustand": "^5.0.7"
 	},
 	"devDependencies": {

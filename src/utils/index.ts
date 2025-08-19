@@ -49,3 +49,25 @@ export const getCellClass = (
 export const hasBeenAttacked = (cellValue: number): boolean => {
 	return cellValue === CELL_VALUES.MISS || cellValue === CELL_VALUES.HIT;
 };
+
+export const debounce = (
+	func: T,
+	delay: number
+) =>  {
+	let timeoutId: number;
+	return (...args: Parameters<T>) => {
+		window.clearTimeout(timeoutId);
+		timeoutId = window.setTimeout(() => func(...args), delay)
+	}
+}
+
+// function debounce<T extends (...args: unknown[]) => unknown>(
+// 	func: T,
+// 	delay: number
+// ): (...args: Parameters<T>) => void {
+// 	let timeoutId: number;
+// 	return (...args: Parameters<T>) => {
+// 		window.clearTimeout(timeoutId);
+// 		timeoutId = window.setTimeout(() => func(...args), delay)
+// 	}
+// }

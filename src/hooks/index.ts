@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { GameLogic } from "../logic/gameLogic";
 import { convertToCoordinates, hasBeenAttacked } from "../utils";
 import {
@@ -14,6 +14,7 @@ import type {
 	AttackParams,
 	Coordinates,
 } from "../types";
+import { Height } from '@mui/icons-material';
 
 /**
  * Main game state management hook for Battleship game
@@ -372,3 +373,61 @@ export const useAttackHandler = (
 
 	return { attack };
 };
+
+export function useLocalStorage<T>(key: string, initialValue: T):[T, (value: T) => void] {
+	const [storedValue, setStoredValue] = useState<T>(() => {
+		const item = window.localStorage.getItem(key);
+		return item ? JSON.parse(item) : initialValue;
+	})
+	const setValue = (value: T): void => {
+		setStoredValue(value);
+		window.localStorage.setItem(key, JSON.stringify(value));
+	}
+
+	return [
+		storedValue,
+		setValue
+	];
+}
+
+export function useDebounce<T>(value: T, delay = 500): T {
+	const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => {
+			setDebouncedValue(value);
+		}, delay);
+
+		return () => {
+			window.clearTimeout(timer);
+		}
+	},[value, delay]);
+
+	return debouncedValue;
+}
+
+interface WindowSize {
+	width: number | null;
+	height: number | null;
+}
+
+export const useWindowSize = (): WindowSize => {
+	const [windowSize, setWindowSize] = useState<WindowSize>({
+		width: null,
+		height: null,
+	});
+
+	useEffect(() => {
+		function handleResize() {
+			setWindowSize({
+				width: window.innerWidth,
+				height: window.innerHeight,
+			});
+		}
+		handleResize();
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
+
+	return windowSize;
+}

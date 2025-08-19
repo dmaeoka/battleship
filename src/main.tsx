@@ -15,6 +15,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 // Application-specific imports
 import AppTheme from "./theme/AppTheme.tsx"; // Custom theme provider component
 import Battleship from "./components/Battleship.tsx"; // Main game component
+import Challenge from './components/Challenge.tsx';
 import "./styles/battleship.css"; // Custom CSS styles for game-specific styling
 
 /**
@@ -45,12 +46,14 @@ createRoot(document.getElementById("root")!).render(
 			*/}
 			<CssBaseline />
 
+			<Challenge />
+
 			{/*
 			Battleship: Main game component that renders the entire game interface
 			- Contains game boards, input controls, and game state management
 			- Inherits theme and baseline styles from parent providers
 			*/}
-			<Battleship />
+			{/* <Battleship /> */}
 		</AppTheme>
 	</StrictMode>,
 );
